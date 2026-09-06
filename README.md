@@ -24,6 +24,7 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 * Choice of data source: media or posts
 * Native X look with theme colours
 * English and Russian interface
+* About dialog with the version, update date and repository links
 * Automatic updates from this repository
 
 The **Gallery** tab sits next to **Media** on every profile:

@@ -49,6 +49,8 @@ userscript managers install and update to.
   after the metadata block. Newest entries first, in English, dated `X.Y.Z — YYYY-MM-DD`, bullets `•`.
   A change without a bump and a changelog entry is not finished. This applies to
   `x-gallery-mode.user.js` and `x-gallery-local-check.user.js` alike, each with its own version.
+  In the main script also update the `VERSION` and `UPDATED` constants (shown in the About dialog);
+  `tests/gallery.test.js` fails when they disagree with `@version` and the newest changelog entry.
 - Contract between the main script and companions — DOM attributes on `.xg-card` cards:
   `data-xg-gallery` on the root, `data-xg-download-url` (original URL), `data-xg-hide` (set by a
   companion — the card leaves the layout). Do not rename them without updating

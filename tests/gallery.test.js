@@ -460,6 +460,16 @@ test('downloads always take the original: name=orig in the stored format, highes
   for (const target of [photo, clip]) assert.doesNotMatch(target.url, /name=(small|medium|large|thumb|900x900|4096x4096)/);
 });
 
+test('VERSION and UPDATED agree with @version and the newest changelog entry', () => {
+  const version = source.match(/^\/\/ @version\s+(\S+)$/m)[1];
+  const entry = source.match(/\n  Changelog\n\n  (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})\n/);
+  assert.ok(entry, 'changelog starts with a dated version entry');
+  assert.equal(entry[1], version, 'newest changelog entry matches @version');
+  assert.equal(source.match(/^  const VERSION = '([^']+)';$/m)[1], version, 'VERSION constant matches @version');
+  assert.equal(source.match(/^  const UPDATED = '([^']+)';$/m)[1], entry[2], 'UPDATED constant matches the newest changelog date');
+  assert.match(source.match(/^\/\/ @icon\s+(\S+)$/m)[1], /^data:image\/png;base64,[A-Za-z0-9+/=]+$/, 'the script icon is the embedded logo');
+});
+
 test('search links point IQDB at the large variant and open in a background tab', () => {
   const opened = [];
   const ctx = vm.createContext({
