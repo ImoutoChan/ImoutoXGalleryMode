@@ -59,8 +59,9 @@ userscript managers install and update to.
   Chirp font, X-style pills and menus. Do not introduce foreign colours or styles.
 - `DEFAULT_QUERY_IDS` are fallback values only; change them only after verifying against X's live bundle
   (`abs.twimg.com/responsive-web/client-web/main.*.js`).
-- Keep the README current: the feature list, the "How it works" table, the file name format
-  `<handle>_<YYYYMMDD>_<post id>_<media index>.<ext>`, the dev-mode sections.
+- Keep the README current: the short feature list at the top (ordered by importance, every item brief,
+  without negations or dashes), the "Details" section, the "How it works" table and the file name format
+  `<handle>_<YYYYMMDD>_<post id>_<media index>.<ext>`.
 
 ## Checks before finishing
 
@@ -87,8 +88,9 @@ Cover new pagination, response parsing, layout or hashing behaviour with tests i
 
 ## Security and data
 
-- Do not commit tokens, cookies (`ct0`), the Kekkai token or screenshots: screenshots of x.com show the
-  logged-in account and are never added to the repository.
-  The `BEARER` in the script is X's public web client token and is fine.
+- Do not commit tokens, cookies (`ct0`), the Kekkai token or screenshots of the x.com page: they show the
+  logged-in account, follows and trends. The only screenshots are `docs/gallery-*.jpg` (the gallery overlay
+  alone on public artists' profiles, saved as JPEG) and `docs/gallery-tab.png` (a crop of the profile tab
+  bar); retake them the same way.
 - Send nothing to third-party services; requests go only to `x.com`, `*.twimg.com` and the companion's
   local API.

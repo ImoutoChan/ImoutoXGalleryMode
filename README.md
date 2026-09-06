@@ -1,9 +1,51 @@
 # X Gallery Mode
 
-A userscript for x.com / twitter.com that adds a **Gallery** tab to profiles: every photo and video of an account in one full-screen gallery.
+Userscript for x.com that adds a **Gallery** tab to every profile: all photos and videos of an account in one full-screen grid.
 
+![Masonry layout, six columns](docs/gallery-1.jpg)
+
+![Aligned rows, nine columns, collapsed vertical sets](docs/gallery-2.jpg)
 
 ## Features
+
+* Full-size photos and videos in a full-width grid
+* Any number of columns
+* Popular and Most recent sort orders
+* Original quality downloads with dated file names
+* Lightbox with keyboard and mouse wheel navigation
+* Hover previews for videos with a seek bar
+* Volume control
+* Duplicate hiding
+* Author's own posts only
+* Reverse image search on IQDB in a background tab
+* Multiple media per post as separate cards or a carousel
+* Group by month
+* Masonry or aligned rows
+* Choice of data source: media or posts
+* Native X look with theme colours
+* English and Russian interface
+* Automatic updates from this repository
+* Optional companion: check originals against a local Kekkai library
+
+The **Gallery** tab sits next to **Media** on every profile:
+
+![The Gallery tab on a profile](docs/gallery-tab.png)
+
+## Installation
+
+1. Install a userscript manager: [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/).
+2. Open the install link <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js> and confirm the installation (or open [`x-gallery-mode.user.js`](x-gallery-mode.user.js) from a local copy of this repository).
+3. Visit any profile, e.g. <https://x.com/Annu_art_>, and click the **Gallery** tab.
+
+Updates come on their own: both scripts carry `@updateURL` / `@downloadURL` pointing at this repository, so the userscript manager checks for a new version on its usual schedule (or right away through "Check for userscript updates").
+
+You need to be logged in to X: the gallery uses the same internal GraphQL requests as the site itself, with your session.
+
+The search button sends the "large" variant of the image to IQDB (`https://iqdb.org/?url=…`) through `GM_openInTab`, so the tab opens in the background and the gallery keeps focus; without `GM_openInTab` (e.g. when the script body is pasted into the console) a regular new tab opens.
+
+For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA → Browser API`; otherwise the script downloads through a blob link (works too, but without the folder picker). Downloads always take the original: photos as `name=orig` in the format X stored them in (JPG or PNG), never a resized `small`/`medium`/`large` variant; videos and GIFs as the mp4 with the highest bitrate X offers. File name: `<handle>_<YYYYMMDD>_<post id>_<media index>.<jpg|png|mp4>`, e.g. `Annu_art__20260819_2096226125081104526_1.jpg` (the post date is local, as shown in the gallery).
+
+## Details
 
 - **Multiple media per post** — three modes in the menu with the stack icon: "Show all separately" (default), "Collapse vertical sets" and "Collapse all". Collapsing merges the attachments of one post into a carousel inside a single cell: arrows flip through the media, a click opens the current attachment in the lightbox, download applies to the current attachment. The first visible attachment sets the frame size, the others fit inside it. The vertical heuristic: a post has several attachments and each is at least 25% taller than it is wide. The mode persists and switches without reloading the feed; the video and duplicate filters keep working.
 - **Data source** — "Auto", "Media" or "Posts" in the header. "Auto" keeps the original behaviour: Popular loads posts, Most recent loads media and falls back to posts when the first page is empty. An explicit choice disables the automatic switch. "Media" supports Most recent only; "Posts" supports both sort orders. The choice persists; changing it restarts loading. Only photos, videos and GIFs from posts end up in the gallery.
@@ -20,20 +62,6 @@ A userscript for x.com / twitter.com that adds a **Gallery** tab to profiles: ev
 - **Native design** — the tab is cloned from a real profile tab, the palette comes from the current X theme (Lights out / Dim / Default) together with the accent colour, Chirp font, the same radii, shadows and hover states as X. The header tools follow the profile name and wrap onto further lines only when they run out of room.
 - Works on profile pages (`/name`, `/name/with_replies`, `/name/media` …), survives SPA navigation, remembers settings (columns, sort order, layout, grouping, sound and volume, the duplicates toggle). A URL with `#gallery` opens the gallery right away; the browser's Back button closes it.
 - English or Russian interface depending on the X interface language.
-
-## Installation
-
-1. Install a userscript manager: [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/).
-2. Open the install link <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js> and confirm the installation (or open [`x-gallery-mode.user.js`](x-gallery-mode.user.js) from a local copy of this repository).
-3. Visit any profile, e.g. <https://x.com/Annu_art_>, and click the **Gallery** tab.
-
-Updates come on their own: both scripts carry `@updateURL` / `@downloadURL` pointing at this repository, so the userscript manager checks for a new version on its usual schedule (or right away through "Check for userscript updates").
-
-You need to be logged in to X: the gallery uses the same internal GraphQL requests as the site itself, with your session.
-
-The search button sends the "large" variant of the image to IQDB (`https://iqdb.org/?url=…`) through `GM_openInTab`, so the tab opens in the background and the gallery keeps focus; without `GM_openInTab` (e.g. when the script body is pasted into the console) a regular new tab opens.
-
-For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA → Browser API`; otherwise the script downloads through a blob link (works too, but without the folder picker). Downloads always take the original: photos as `name=orig` in the format X stored them in (JPG or PNG), never a resized `small`/`medium`/`large` variant; videos and GIFs as the mp4 with the highest bitrate X offers. File name: `<handle>_<YYYYMMDD>_<post id>_<media index>.<jpg|png|mp4>`, e.g. `Annu_art__20260819_2096226125081104526_1.jpg` (the post date is local, as shown in the gallery).
 
 ## How it works
 

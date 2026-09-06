@@ -2,3 +2,5 @@ node_modules/
 Thumbs.db
 .DS_Store
 *.log
+docs/*.png
+!docs/gallery-tab.png

@@ -4,13 +4,14 @@
 // @namespace    imouto.x-gallery-local-check
 // @version      1.1.1
 // @description  Optional companion for X Gallery Mode: check original media MD5 against local Kekkai and highlight exact matches.
-// @license      MIT
+// @author       ImoutoChan
 // @homepageURL  https://github.com/ImoutoChan/ImoutoXGalleryMode
 // @supportURL   https://github.com/ImoutoChan/ImoutoXGalleryMode/issues
 // @updateURL    https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js
 // @downloadURL  https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js
 // @match        https://x.com/*
 // @match        https://twitter.com/*
+// @icon         https://abs.twimg.com/favicons/twitter.3.ico
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getValue
 // @grant        GM_setValue
