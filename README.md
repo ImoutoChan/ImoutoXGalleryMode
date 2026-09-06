@@ -25,7 +25,6 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 * Native X look with theme colours
 * English and Russian interface
 * Automatic updates from this repository
-* Optional companion: check originals against a local Kekkai library
 
 The **Gallery** tab sits next to **Media** on every profile:
 
@@ -37,7 +36,7 @@ The **Gallery** tab sits next to **Media** on every profile:
 2. Open the install link <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js> and confirm the installation (or open [`x-gallery-mode.user.js`](x-gallery-mode.user.js) from a local copy of this repository).
 3. Visit any profile, e.g. <https://x.com/Annu_art_>, and click the **Gallery** tab.
 
-Updates come on their own: both scripts carry `@updateURL` / `@downloadURL` pointing at this repository, so the userscript manager checks for a new version on its usual schedule (or right away through "Check for userscript updates").
+Updates come on their own: the script carries `@updateURL` / `@downloadURL` pointing at this repository, so the userscript manager checks for a new version on its usual schedule (or right away through "Check for userscript updates").
 
 You need to be logged in to X: the gallery uses the same internal GraphQL requests as the site itself, with your session.
 
@@ -79,26 +78,6 @@ X's rate limiting (HTTP 429) is handled: the gallery shows a countdown and resum
 The bottom-right corner holds a panel with the last API response, collapsed by default. Its header reads `API · remaining / limit` (e.g. `API · 47 / 100`); unknown values are shown as `—`. Expanding it reveals the operation, HTTP status, response time, request limit, remaining requests, reset time and the raw `Retry-After`. A missing header is shown as "Not provided". For 429 the scheduled retry time is displayed as well: from `x-rate-limit-reset`, or 60 seconds later when no usable reset time exists. `Retry-After` is shown for diagnostics but does not change the delay. The panel reports responses to the script's own requests, not X's background requests.
 
 ## Development
-
-### Separate local file check script
-
-Install the main script version 1.6.0 or newer plus [`x-gallery-local-check.user.js`](x-gallery-local-check.user.js) (install link: <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js>) in Tampermonkey/Violentmonkey. It is a standalone userscript: the "Check local files" button appears only inside an open gallery of the main script.
-
-By default the check runs with an empty token (`token=`). If the service at `http://localhost:11303` requires a token, set it through **"Kekkai API token"** in the userscript manager menu; an empty string can be saved there too. The token is stored in the extension's settings and never handed to the X page. The extension needs permissions for requests to `localhost`, `pbs.twimg.com` and `video.twimg.com`.
-
-The button starts checking every card already loaded, including cards hidden by filters and slides of collapsed cards. While the check is enabled, new cards are checked as well. The extension never loads post pages itself. During the check the button icon turns into a progress ring: the arc length is the share of checked media, the ring spins while downloads and requests are in flight; a `checked/total` counter sits next to it. Pressing the button again stops the work and removes every frame and tooltip; closing the gallery or changing the source/sort order cancels the check as well.
-
-The **"Hide saved"** button next to it removes cards with an exact match (`Present`) from the gallery: the layout reflows without gaps, the lightbox flips only through the remaining media, the button shows how many are hidden. The button state is remembered; it only acts while the check is enabled, and hidden cards come back when the check is turned off. Technically the extension sets the `data-xg-hide` attribute on a card and the main script (1.6.0+) excludes such cards from the layout — other companion scripts may use the same attribute.
-
-The full file is downloaded for MD5: photos as `name=orig`, videos/GIFs as the same MP4 the download button uses. Files are downloaded one at a time; hashing periodically yields to the interface. Digests are sent in batches of up to 16 to `POST /FileStatus?token=…`, the body is an array of MD5 hex strings. API availability is verified with an empty array before anything is downloaded. After the check only the hashes stay in memory, never the file contents.
-
-- `Present`: red card outline and 80% opacity on the media.
-- `NotFound`: normal look.
-- `RelativePresent`: explanation in the tooltip; an exact copy is not confirmed, so no red outline.
-
-The mark belongs to a specific attachment: in a carousel every media keeps its own result while flipping. The check needs full downloads, so it uses noticeable traffic, especially for videos. Re-running the check in the same tab reuses the MD5 cache but asks the local API about file presence again. Errors and progress are shown in the button and its tooltip.
-
-Extension tests: `node --test tests/local-check.test.js`.
 
 One file, no dependencies. Syntax check: `node --check x-gallery-mode.user.js`. The version history lives in the comment right after the metadata block at the top of the script.
 
