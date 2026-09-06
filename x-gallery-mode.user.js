@@ -2,11 +2,15 @@
 // @name         X Gallery Mode
 // @name:ru      X Gallery Mode — галерея профиля
 // @namespace    imouto.x-gallery-mode
-// @version      1.7.0
+// @version      1.7.1
 // @description  Adds a "Gallery" tab to X/Twitter profiles: full uncropped images in a full-width masonry grid, any number of columns, download / open post / like counts, duplicate hiding, no reposts, Popular / Most recent sorting.
 // @description:ru  Вкладка «Gallery» в профилях X/Twitter: изображения целиком без обрезки, любое число колонок, на всю ширину экрана, скачивание, открытие поста, лайки, скрытие дубликатов, без репостов, сортировка «популярные / новые».
 // @author       Oniii-chan
 // @license      MIT
+// @homepageURL  https://github.com/ImoutoChan/ImoutoXGalleryMode
+// @supportURL   https://github.com/ImoutoChan/ImoutoXGalleryMode/issues
+// @updateURL    https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js
+// @downloadURL  https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js
 // @match        https://x.com/*
 // @match        https://twitter.com/*
 // @icon         https://abs.twimg.com/favicons/twitter.3.ico
@@ -21,6 +25,10 @@
 
 /*
   Changelog
+
+  1.7.1 — 2026-09-06
+    • Update and download URLs point at the GitHub repository (ImoutoChan/ImoutoXGalleryMode), so
+      userscript managers pick up new versions on their own; homepage and support URLs added.
 
   1.7.0 — 2026-09-06
     • Header tools follow the profile name and wrap onto further lines only when they run out of room,

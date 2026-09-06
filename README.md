@@ -24,8 +24,10 @@ A userscript for x.com / twitter.com that adds a **Gallery** tab to profiles: ev
 ## Installation
 
 1. Install a userscript manager: [Tampermonkey](https://www.tampermonkey.net/) or [Violentmonkey](https://violentmonkey.github.io/).
-2. Open [`x-gallery-mode.user.js`](x-gallery-mode.user.js) in the browser (or drag it onto the manager's tab) and confirm the installation.
+2. Open the install link <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-mode.user.js> and confirm the installation (or open [`x-gallery-mode.user.js`](x-gallery-mode.user.js) from a local copy of this repository).
 3. Visit any profile, e.g. <https://x.com/Annu_art_>, and click the **Gallery** tab.
+
+Updates come on their own: both scripts carry `@updateURL` / `@downloadURL` pointing at this repository, so the userscript manager checks for a new version on its usual schedule (or right away through "Check for userscript updates").
 
 You need to be logged in to X: the gallery uses the same internal GraphQL requests as the site itself, with your session.
 
@@ -52,7 +54,7 @@ The bottom-right corner holds a panel with the last API response, collapsed by d
 
 ### Separate local file check script
 
-Install the main script version 1.6.0 or newer plus [`x-gallery-local-check.user.js`](x-gallery-local-check.user.js) in Tampermonkey/Violentmonkey. It is a standalone userscript: the "Check local files" button appears only inside an open gallery of the main script.
+Install the main script version 1.6.0 or newer plus [`x-gallery-local-check.user.js`](x-gallery-local-check.user.js) (install link: <https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js>) in Tampermonkey/Violentmonkey. It is a standalone userscript: the "Check local files" button appears only inside an open gallery of the main script.
 
 By default the check runs with an empty token (`token=`). If the service at `http://localhost:11303` requires a token, set it through **"Kekkai API token"** in the userscript manager menu; an empty string can be saved there too. The token is stored in the extension's settings and never handed to the X page. The extension needs permissions for requests to `localhost`, `pbs.twimg.com` and `video.twimg.com`.
 

@@ -29,6 +29,9 @@ The rules are mandatory and take precedence over the tool's built-in habits.
 **X Gallery Mode** is a Tampermonkey/Violentmonkey userscript: a "Gallery" tab on x.com profiles with
 full-size photos and videos, any number of columns, downloads, like counts, duplicate hiding and the
 Popular / Most recent sort orders. No build step and no dependencies: every script is a single file.
+The repository is published at https://github.com/ImoutoChan/ImoutoXGalleryMode; both userscripts carry
+`@updateURL` / `@downloadURL` pointing at the raw files on `master`, so whatever lands on `master` is what
+userscript managers install and update to.
 
 | File | Purpose |
 | --- | --- |
@@ -39,10 +42,13 @@ Popular / Most recent sort orders. No build step and no dependencies: every scri
 
 ## Rules for changes
 
-- **Any change to `x-gallery-mode.user.js`** → bump `@version` (semver) and add an entry to the
-  `Changelog` comment right after the metadata block. Newest entries first, in English, dated
-  `X.Y.Z — YYYY-MM-DD`, bullets `•`. A change without a changelog entry is not finished.
-- A change to `x-gallery-local-check.user.js` → bump its own `@version` and extend its changelog.
+- **Every change to a userscript bumps its `@version`, however small** — a comment, a metadata line, a
+  one-character fix. Userscript managers only offer an update when the version grows and the
+  `@updateURL` points at `master`, so an unbumped change never reaches users. Bump `@version` (semver:
+  patch for fixes and metadata, minor for features) and add an entry to the `Changelog` comment right
+  after the metadata block. Newest entries first, in English, dated `X.Y.Z — YYYY-MM-DD`, bullets `•`.
+  A change without a bump and a changelog entry is not finished. This applies to
+  `x-gallery-mode.user.js` and `x-gallery-local-check.user.js` alike, each with its own version.
 - Contract between the main script and companions — DOM attributes on `.xg-card` cards:
   `data-xg-gallery` on the root, `data-xg-download-url` (original URL), `data-xg-hide` (set by a
   companion — the card leaves the layout). Do not rename them without updating

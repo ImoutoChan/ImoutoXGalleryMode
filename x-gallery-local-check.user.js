@@ -2,8 +2,13 @@
 // @name         X Gallery — Local media check
 // @name:ru      X Gallery — проверка локальных медиа
 // @namespace    imouto.x-gallery-local-check
-// @version      1.1.0
+// @version      1.1.1
 // @description  Optional companion for X Gallery Mode: check original media MD5 against local Kekkai and highlight exact matches.
+// @license      MIT
+// @homepageURL  https://github.com/ImoutoChan/ImoutoXGalleryMode
+// @supportURL   https://github.com/ImoutoChan/ImoutoXGalleryMode/issues
+// @updateURL    https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js
+// @downloadURL  https://raw.githubusercontent.com/ImoutoChan/ImoutoXGalleryMode/master/x-gallery-local-check.user.js
 // @match        https://x.com/*
 // @match        https://twitter.com/*
 // @grant        GM_xmlhttpRequest
@@ -19,6 +24,10 @@
 
 /*
   Changelog
+
+  1.1.1 — 2026-09-06
+    • Update and download URLs point at the GitHub repository (ImoutoChan/ImoutoXGalleryMode), so
+      userscript managers pick up new versions on their own; license, homepage and support URLs added.
 
   1.1.0 — 2026-09-06
     • Progress ring on the check button: the arc is the share of checked media; it spins while work is in flight.
