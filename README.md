@@ -88,4 +88,4 @@ For one-off debugging you can paste the script body (without the `==UserScript==
 
 ## License
 
-MIT
+Copyright ImoutoChan, all rights reserved. Installing and using the script is allowed; redistribution and derivative works need the author's permission.
