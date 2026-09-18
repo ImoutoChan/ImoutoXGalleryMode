@@ -10,9 +10,9 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 
 * Full-size photos and videos in a full-width grid
 * Any number of columns
-* Popular and Most recent sort orders
+* **Popular** and Most recent sort orders
 * Original quality downloads with dated file names
-* Lightbox with keyboard and mouse wheel navigation
+* Keyboard arrows and mouse wheel navigation
 * Hover previews for videos with a seek bar
 * Volume control
 * Duplicate hiding
