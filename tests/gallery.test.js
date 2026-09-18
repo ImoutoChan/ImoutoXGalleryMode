@@ -516,6 +516,75 @@ test('cards flagged by a companion via data-xg-hide leave the layout and the lig
   assert.deepEqual(Array.from(g.visibleItems()), items);
 });
 
+test('replies are recognised by in_reply_to_status_id_str, with conversation_id_str as the fallback', () => {
+  const ctx = vm.createContext({ decodeEntities: (text) => text });
+  vm.runInContext(section('  function parseMediaUrl(', '  function normalizeTweet(')
+    + section('  function normalizeTweet(', '  /* ═') + '\nglobalThis.normalizeTweet = normalizeTweet;', ctx);
+  const tweet = (legacy) => ctx.normalizeTweet({ rest_id: 'p1', legacy: { created_at: 'Wed Sep 16 12:00:00 +0000 2026', user_id_str: 'author', full_text: '', ...legacy } });
+
+  const original = tweet({ conversation_id_str: 'p1' });
+  assert.equal(original.isReply, false);
+  assert.equal(original.replyToUserId, null);
+
+  const toSomebody = tweet({ conversation_id_str: 'root', in_reply_to_status_id_str: 'root', in_reply_to_user_id_str: 'somebody' });
+  assert.equal(toSomebody.isReply, true);
+  assert.equal(toSomebody.replyToUserId, 'somebody');
+
+  const ownThread = tweet({ conversation_id_str: 'root', in_reply_to_status_id_str: 'root', in_reply_to_user_id_str: 'author' });
+  assert.equal(ownThread.isReply, true);
+  assert.equal(ownThread.replyToUserId, 'author');
+
+  // Should X stop sending in_reply_to_*, a differing conversation id still marks the post as a reply.
+  assert.equal(tweet({ conversation_id_str: 'root' }).isReply, true);
+});
+
+test('the replies filter drops answers to other people, and own threads as well in "Hide all"', () => {
+  const { gallery: g, settings } = harness();
+  Object.assign(settings, { multiMedia: 'all', columns: 3, layout: 'masonry', replies: 'all' });
+  const post = mediaItems('post', [[1000, 1000]]);
+  const ownThread = mediaItems('own', [[1000, 1000]]);
+  const toSomebody = mediaItems('other', [[1000, 1000]]);
+  Object.assign(post[0].tweet, { userId: 'author' });
+  Object.assign(ownThread[0].tweet, { userId: 'author', isReply: true, replyToUserId: 'author' });
+  Object.assign(toSomebody[0].tweet, { userId: 'author', isReply: true, replyToUserId: 'somebody' });
+  const items = [...post, ...ownThread, ...toSomebody];
+  for (const item of items) {
+    item.el = { hidden: false, dataset: {}, classList: { toggle() {} }, style: { setProperty() {} } };
+    item.nav = [];
+  }
+  g.items = items;
+  g.root = { classList: { toggle() {} } };
+  g.grid = { clientWidth: 600, style: {} };
+  g.cardSelections = new Map(); g.groupHeaders = new Map();
+  g.ensureVariant = () => {};
+  g.layout();
+  assert.deepEqual(items.map((it) => it.el.hidden), [false, false, false]);
+  settings.replies = 'threads';
+  g.layout();
+  assert.deepEqual(items.map((it) => it.el.hidden), [false, false, true]);
+  assert.deepEqual(Array.from(g.visibleItems()), [post[0], ownThread[0]]);
+  settings.replies = 'none';
+  g.layout();
+  assert.deepEqual(items.map((it) => it.el.hidden), [false, true, true]);
+  assert.deepEqual(Array.from(g.visibleItems()), [post[0]]);
+  settings.replies = 'all';
+  g.layout();
+  assert.deepEqual(items.map((it) => it.el.hidden), [false, false, false]);
+});
+
+test('switching the replies mode only relayouts existing media without fetching', () => {
+  const { gallery: g, settings, calls } = harness();
+  settings.replies = 'all';
+  let layouts = 0;
+  g.renderRepliesButton = () => {};
+  g.renderHeading = () => {};
+  g.layout = () => layouts++;
+  g.setReplies('threads');
+  assert.equal(settings.replies, 'threads');
+  assert.equal(layouts, 1);
+  assert.equal(calls.length, 0);
+});
+
 test('API status captures 429 headers and replaces them on the next response', () => {
   const { apiStatus } = harness();
   let updates = 0;

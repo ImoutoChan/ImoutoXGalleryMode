@@ -16,6 +16,7 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 * Hover previews for videos with a seek bar
 * Volume control
 * Duplicate hiding
+* Reply hiding with own threads kept
 * Author's own posts only
 * Reverse image search on IQDB in a background tab
 * Multiple media per post as separate cards or a carousel
@@ -57,10 +58,11 @@ For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA 
 - **Videos and GIFs too** — the grid shows a poster with a ▶ badge and the duration (or "GIF"). Hovering a card plays the video muted in a loop; leaving the card stops it and brings the poster back. Videos load only on hover. A progress bar appears under a playing preview: click or drag it to seek. The lightbox has a player (GIFs loop silently), downloads take the best-bitrate mp4. The "Videos" toggle in the header hides them when you only want pictures. The "Sound" pill (off by default) opens a volume popover with a slider and a mute button; the level applies to previews and to the lightbox player, and changes made inside the player are remembered as well. GIFs are always silent.
 - **Under every photo** — like count, date, a reverse image search button (IQDB, opens in a background tab), a button to download the original, a button to open the post in a new tab. Clicking a photo opens the lightbox (←/→ arrows or the mouse wheel flip photos, Esc closes; search, download and stats live there too: likes, reposts, views). The lightbox paints the variant already loaded for the grid at once and swaps in the large one when it arrives, so flipping never shows the previous photo while the next downloads; a small spinner in the corner shows while the sharper version or a video is still loading.
 - **Duplicate hiding** — identical pictures posted several times collapse into one (the first in the current sort order stays). The comparison is perceptual: dHash + normalised correlation of 16×16 thumbnails, plus exact media key matches. The button shows how many are hidden; the toggle switches off with one click.
+- **Replies** — a menu with the reply icon: "Show all" (default), "Own threads only" and "Hide all". "Own threads only" removes the posts the author wrote as replies to somebody else, which is what fills a media feed with reaction pictures, and keeps the replies written under their own posts, where a thread usually continues the same work. "Hide all" leaves originals alone. A reply is recognised by `in_reply_to_status_id_str` (with `conversation_id_str` as a fallback) and the addressee by `in_reply_to_user_id_str`, so no extra requests are needed. The mode persists and switches without reloading the feed; the pill tooltip shows how many media are hidden. Replies to other people come from the "Media" source only, "Posts" never returns them, while replies to one's own posts appear in both.
 - **No reposts** — only the author's own posts are shown.
 - **Sort orders** — "Popular" (X's native server-side sort by likes, paginated) and "Most recent". "Popular" opens by default.
 - **Native design** — the tab is cloned from a real profile tab, the palette comes from the current X theme (Lights out / Dim / Default) together with the accent colour, Chirp font, the same radii, shadows and hover states as X. The header tools follow the profile name and wrap onto further lines only when they run out of room.
-- Works on profile pages (`/name`, `/name/with_replies`, `/name/media` …), survives SPA navigation, remembers settings (columns, sort order, layout, grouping, sound and volume, the duplicates toggle). A URL with `#gallery` opens the gallery right away; the browser's Back button closes it.
+- Works on profile pages (`/name`, `/name/with_replies`, `/name/media` …), survives SPA navigation, remembers settings (columns, sort order, layout, grouping, sound and volume, the duplicates toggle, the replies mode). A URL with `#gallery` opens the gallery right away; the browser's Back button closes it.
 - English or Russian interface depending on the X interface language.
 
 ## How it works
@@ -70,6 +72,7 @@ For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA 
 | User by handle | GraphQL `UserByScreenName` |
 | "Popular" sort | GraphQL `UserOriginalsTimeline` with `sortByMostLiked: true` — the same request X makes when "Popular" is chosen on a profile; only posts with media are taken from the response |
 | "Most recent" sort | GraphQL `UserMedia` — the source of the Media tab (photos and videos). For age-restricted (sensitive) accounts X returns it empty, so the gallery automatically falls back to the chronological `UserOriginalsTimeline` |
+| Replies | `in_reply_to_status_id_str` and `in_reply_to_user_id_str` of the post, with `conversation_id_str` as a fallback when X stops sending them. `UserMedia` includes the replies the author wrote, `UserOriginalsTimeline` returns only their own posts and threads |
 | Videos | The post's `video_info.variants`: the mp4 with the highest bitrate is used for playback and download, the poster is `media_url_https` with the same `name=…` sizes as photos |
 | Query identifiers (`queryId`) | Read from X's main JS bundle (`main.*.js`) and cached per bundle version; when they go stale (HTTP 400/404) they are re-read automatically. The script ships fallback values. |
 | Images | `pbs.twimg.com/media/<id>?format=<ext>&name=<small|medium|large|orig>` — the variant is picked for the column width and DPR; more columns means higher quality |

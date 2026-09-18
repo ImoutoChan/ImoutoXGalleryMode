@@ -2,9 +2,9 @@
 // @name         X Gallery Mode
 // @name:ru      X Галерея профиля
 // @namespace    imouto.x-gallery-mode
-// @version      1.8.3
+// @version      1.9.0
 // @description  Gallery tab to X/Twitter profiles: uncropped images/videos in a fullscreen masonry grid, highly customizable, downloads, deduplication, Popular/Most recent
-// @description:ru  Вкладка «Gallery» в профилях X/Twitter: изображения целиком без обрезки, любое число колонок, на всю ширину экрана, скачивание, открытие поста, лайки, скрытие дубликатов, без репостов, сортировка «популярные / новые».
+// @description:ru  Вкладка «Gallery» в профилях X/Twitter: изображения целиком без обрезки, любое число колонок, на всю ширину экрана, скачивание, открытие поста, лайки, скрытие дубликатов, фильтр ответов, без репостов, сортировка «популярные / новые».
 // @author       ImoutoChan
 // @license      Copyright ImoutoChan
 // @homepageURL  https://github.com/ImoutoChan/ImoutoXGalleryMode
@@ -25,6 +25,15 @@
 
 /*
   Changelog
+
+  1.9.0 — 2026-09-18
+    • "Replies" menu in the header: "Show all" (default), "Own threads only" — replies addressed to other
+      people leave the grid while the author's replies under their own posts stay — and "Hide all".
+      The mode persists and switches without reloading the feed.
+    • A reply is recognised by in_reply_to_status_id_str, with conversation_id_str as a fallback should X
+      stop sending the field; the addressee comes from in_reply_to_user_id_str. Only the Media source
+      carries replies to other people, Posts never returns them, but replies to one's own posts appear
+      in both.
 
   1.8.2 — 2026-09-09
     • New logo: the heart mark as an embedded SVG, used for the script icon, the About button and the About
@@ -212,12 +221,12 @@
 
   const SETTINGS_KEY = 'xg.settings';
   const QUERY_IDS_KEY = 'xg.queryIds';
-  const DEFAULT_SETTINGS = { columns: 4, sort: 'popular', source: 'auto', multiMedia: 'all', hideDuplicates: true, layout: 'masonry', groupByMonth: false, showVideos: true, sound: false, volume: 0.5 };
+  const DEFAULT_SETTINGS = { columns: 4, sort: 'popular', source: 'auto', multiMedia: 'all', replies: 'all', hideDuplicates: true, layout: 'masonry', groupByMonth: false, showVideos: true, sound: false, volume: 0.5 };
 
   // Shown in the About dialog. VERSION and UPDATED must match @version and the newest changelog entry;
   // tests/gallery.test.js fails when they drift apart.
-  const VERSION = '1.8.2';
-  const UPDATED = '2026-09-09';
+  const VERSION = '1.9.0';
+  const UPDATED = '2026-09-18';
   const REPO_URL = 'https://github.com/ImoutoChan/ImoutoXGalleryMode';
   const LOGO = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDMxLjM0IDI3LjI3Ij48ZGVmcz48c3R5bGU+LmR7ZmlsbDojZmZmO30uZXtmaWxsOiMyMzFmMjA7fTwvc3R5bGU+PC9kZWZzPjxnIGlkPSJhIi8+PGcgaWQ9ImIiPjxnIGlkPSJjIj48Zz48cGF0aCBjbGFzcz0iZSIgZD0iTTE5Ljk2LC44MmgwYy0xLjY2LC42LTMuMjMsMS42LTQuNDQsMi44NmgwYy0uOTYtMS4yMy0yLjQyLTIuMi00LjA0LTIuODRoMEM2LjA2LTEuNjYtMS43NywxLjU4LC4zNiw5LjR2LjAzYy41NiwxLjc4LDEuODQsNC4yOCw0LjE3LDZ2MGgwYzMuMTksMi4zMywxMC4zMiw4LjksMTEuMDgsMTEuODNoMGMuODEtMy4yNyw2LjcyLTcuMjgsMTEuMDctMTEuNTZoMGMyLjA0LTIsMy43My00LjA4LDQuMzYtNi4yMUMzMi44MSwyLjQ3LDI2LjAzLTEuOTEsMTkuOTYsLjgyWiIvPjxwYXRoIGNsYXNzPSJkIiBkPSJNMTkuOTcsLjgyYy0xLjY3LC42LTMuMjMsMS42LTQuNDUsMi44Ni0uOTYtMS4yMi0yLjQxLTIuMi00LjA0LTIuODNDNi4wNS0xLjY3LTEuNzcsMS41OCwuMzYsOS40YzAsLjAxLDAsLjAyLDAsLjAyLC41NywxLjc4LDEuODUsNC4yOCw0LjE4LDYuMDEsMS41OSwxLjE3LDQuMTgsMy4zOSw2LjQ2LDUuNjksMi4yNywyLjMsNC4yNSw0LjY4LDQuNjMsNi4xNCwuNC0xLjY0LDIuMDgtMy40Niw0LjItNS40LDIuMTMtMS45NSw0LjctNC4wMiw2Ljg3LTYuMTYsMi4wNi0yLjAxLDMuNzMtNC4wOCw0LjM3LTYuMkMzMi44MSwyLjQ3LDI2LjA0LTEuOTEsMTkuOTcsLjgyWm0tLjMsMS41MmMuMTMsLjEsMS45NCwxLjg3LDMuMjIsNi44NS0uNjgsMS4wOC0yLjA2LDMuMTItMi43Niw0LjE1LDEuMzUtMi40Mi0zLjktOC42Ni0zLjktOC42NiwxLTEuMDUsMi4wNy0xLjgzLDMuNDQtMi4zM1ptLTcuNzcsLjA3YzEuMjksLjUyLDIuMTgsMS4xOSwyLjk0LDIuMTgsMCwwLTQuODQsNS4xNS00Ljg5LDcuNDItLjY3LTEuMDctMS4wOS0xLjUyLTEuNzEtMi43NiwuNTEtMS43NCwxLjk3LTUuNTUsMy42Ny02Ljg0Wm0tMS45Ni0uOTJjLS4zLC4xMi0yLjMsMS4wMS01LjQsMy4zNkMxLjc0LDYuOTksMS4zMiw3LjUsMS4yNCw3Ljc5LC40MiwyLjI3LDYuMjcsMCw5Ljk0LDEuNVpNMS44NCw5LjY5Yy4wOS0uMywuNTctMS44NCwzLjQzLTQsMy4yNy0yLjUsNS41MS0zLjU3LDUuNTktMy42LTEuODEsMS4zNy0zLjAzLDQuOTMtMy41OCw2Ljc5LS40MSwxLjA1LTEuNTgsMi43Mi0yLjE0LDUuMzYtMS45My0xLjQ0LTIuODItMy4wNi0zLjMtNC41NFptMTMuMTEsMTQuOTFjLS42MS0yLjQzLTguOTUtOS41MS04Ljk1LTkuNTEsLjU4LTIuNzIsMS4zLTMuMTQsMS43MS00LjM0LDIuNjEsNC43Nyw3LjEyLDkuNjgsNy4yNCwxMy44NFptLTQuMzQtMTEuMzVjLjA1LTIuMzYsNC45Mi03Ljg0LDQuOTItNy44NCwxLjc0LDIuNzUsMi42OSw0LjAyLDMuMyw1LjI5LDIuMjcsNC43OC0xLjYyLDQuMzctMi45NywxMi43LTEuMDItMy41Ny0zLjEyLTYuMTgtNS4yNC0xMC4xNVptNS45OCwxMS4xMWMxLjUyLTcuNTcsNC4yNy05Ljk3LDYuODItMTQuMjcsMS4wMywxLjcyLDEuNCwyLjk5LDEuODgsNS4zLTMuNTcsMy41NS04LjA1LDYuMjYtOC43LDguOTdabTkuNTctOS43N2MtLjQ3LTIuMzEtMS4wOC0zLjkxLTIuMTEtNS42NC0xLjItNC42NS0zLjA0LTYuNC0zLjM3LTYuNjgsMy4zNywxLjk1LDcuNzksNC4xMyw5LjA3LDcuMTctLjUyLDEuNzYtMS45MSwzLjQ5LTMuNTksNS4xNVptMy45Ni02LjQyYy0xLjI2LTIuOTktNS40OS00LjcxLTguODItNi42NCw0LjYyLTEuOTgsOS41NCwyLjA3LDguODIsNi42NFoiLz48cGF0aCBjbGFzcz0iZCIgZD0iTTE1LjMyLDYuMjRjMCwxLjM3LS44NywyLjY1LTEuMDYsMy4wMS0zLjIyLDQuNDgtLjYsNy4xMiwxLjA1LDExLjE5LDUuMDctOC44MSwyLjMxLTYuNTQsMC0xNC4yWm0uMDgsNy40OWMtLjQ4LC45Mi0uNjksMi4xNi0uNjYsMy4zNy0uOTMtMS45My0xLjczLTMuNTEtLjA1LTUuODgsLjEzLS4yNCwuNjktMS4wNywuNjktMS45NiwxLjM5LDQuNjEsMi45OCwzLjc3LC41OCw4LjE3LC4xMS0xLjM1LS4wOC0yLjc2LS41Ni0zLjdaIi8+PC9nPjwvZz48L2c+PC9zdmc+';
 
@@ -243,6 +252,7 @@
       source: 'Source', sourceAuto: 'Auto', sourceMedia: 'Media', sourcePosts: 'Posts',
       mediaRecentOnly: 'Media source supports Most recent only',
       multiMedia: 'Multiple media per post', multiAll: 'Show all separately', multiVertical: 'Collapse vertical sets', multiCollapse: 'Collapse all',
+      replies: 'Replies', repliesAll: 'Show all', repliesThreads: 'Own threads only', repliesNone: 'Hide all',
       sound: 'Sound', soundOn: 'Sound on', soundOff: 'Muted', seek: 'Seek',
       volume: 'Volume', mute: 'Mute', unmute: 'Unmute', search: 'Search image',
       searchHint: 'Reverse image search on IQDB (opens in a background tab)',
@@ -265,6 +275,7 @@
       source: 'Источник', sourceAuto: 'Авто', sourceMedia: 'Медиа', sourcePosts: 'Посты',
       mediaRecentOnly: 'Для источника «Медиа» доступна только сортировка «Сначала новые»',
       multiMedia: 'Множество медиа в посте', multiAll: 'Показывать все отдельно', multiVertical: 'Схлопывать вертикальные', multiCollapse: 'Схлопывать все',
+      replies: 'Ответы', repliesAll: 'Показывать все', repliesThreads: 'Только свои треды', repliesNone: 'Скрывать все',
       sound: 'Звук', soundOn: 'Звук включён', soundOff: 'Без звука', seek: 'Перемотка',
       volume: 'Громкость', mute: 'Выключить звук', unmute: 'Включить звук', search: 'Найти похожие',
       searchHint: 'Поиск по картинке на IQDB (откроется в фоновой вкладке)',
@@ -304,6 +315,7 @@
   if (!['auto', 'media', 'originals'].includes(settings.source)) settings.source = 'auto';
   if (settings.source === 'media') settings.sort = 'recent';
   if (!['all', 'vertical', 'collapse'].includes(settings.multiMedia)) settings.multiMedia = 'all';
+  if (!['all', 'threads', 'none'].includes(settings.replies)) settings.replies = 'all';
   if (!(settings.volume >= 0 && settings.volume <= 1)) settings.volume = DEFAULT_SETTINGS.volume;
   const saveSettings = () => storage.set(SETTINGS_KEY, settings);
 
@@ -354,6 +366,7 @@
     rows: '<svg viewBox="0 0 24 24"><path d="M3 3h8v8H3V3zm2 2v4h4V5H5zm8-2h8v8h-8V3zm2 2v4h4V5h-4zM3 13h8v8H3v-8zm2 2v4h4v-4H5zm8-2h8v8h-8v-8zm2 2v4h4v-4h-4z"/></svg>',
     calendar: '<svg viewBox="0 0 24 24"><path d="M7 2h2v2h6V2h2v2h4v18H3V4h4V2zM5 6v3h14V6H5zm0 5v9h14v-9H5zm2 2h3v3H7v-3zm5 0h3v3h-3v-3z"/></svg>',
     play: '<svg viewBox="0 0 24 24"><path d="M21 12L4 2v20l17-10z"/></svg>',
+    reply: '<svg viewBox="0 0 24 24"><path d="M1.751 10c0-4.42 3.584-8 8.005-8h4.366c4.49 0 8.129 3.64 8.129 8.13 0 2.96-1.607 5.68-4.196 7.11l-8.054 4.46v-3.69h-.067c-4.49.1-8.183-3.51-8.183-8.01zm8.005-6c-3.317 0-6.005 2.69-6.005 6 0 3.37 2.77 6.08 6.138 6.01l.351-.01h1.761v2.3l5.087-2.81c1.951-1.08 3.163-3.13 3.163-5.36 0-3.39-2.744-6.13-6.129-6.13H9.756z"/></svg>',
     search: '<svg viewBox="0 0 24 24"><path d="M10.25 3.75c-3.59 0-6.5 2.91-6.5 6.5s2.91 6.5 6.5 6.5c1.795 0 3.419-.726 4.596-1.904 1.178-1.177 1.904-2.801 1.904-4.596 0-3.59-2.91-6.5-6.5-6.5zm-8.5 6.5c0-4.694 3.806-8.5 8.5-8.5s8.5 3.806 8.5 8.5c0 1.986-.682 3.815-1.824 5.262l4.781 4.781-1.414 1.414-4.781-4.781c-1.447 1.142-3.276 1.824-5.262 1.824-4.694 0-8.5-3.806-8.5-8.5z"/></svg>',
     volume: '<svg viewBox="0 0 24 24"><path d="M3 9h4.3L12 5.2v13.6L7.3 15H3V9zm13.95-1.95A7 7 0 0 1 16.95 16.95l-1.41-1.41a5 5 0 0 0 0-7.08l1.41-1.41zm2.83-2.83A11 11 0 0 1 19.78 19.78l-1.42-1.42a9 9 0 0 0 0-12.72l1.42-1.42z"/></svg>',
     mute: '<svg viewBox="0 0 24 24"><path d="M3 9h4.3L12 5.2v13.6L7.3 15H3V9zm13.59 3L14.4 9.82l1.42-1.42L18 10.59l2.18-2.19 1.42 1.42L19.41 12l2.19 2.18-1.42 1.42L18 13.41l-2.18 2.19-1.42-1.42L16.59 12z"/></svg>',
@@ -581,6 +594,10 @@
       screenName,
       url: `https://x.com/${screenName || 'i'}/status/${id}`,
       isRetweet: Boolean(legacy.retweeted_status_result) || /^RT @/.test(legacy.full_text || ''),
+      // X sends in_reply_to_* only on replies; conversation_id_str is the fallback should it stop doing so
+      // (verified 2026-09 on a media timeline: the two mark exactly the same posts).
+      isReply: Boolean(legacy.in_reply_to_status_id_str) || Boolean(legacy.conversation_id_str && legacy.conversation_id_str !== id),
+      replyToUserId: legacy.in_reply_to_user_id_str || null,
       createdAt: new Date(legacy.created_at),
       favs: legacy.favorite_count || 0,
       retweets: legacy.retweet_count || 0,
@@ -1028,11 +1045,11 @@ html.xg-lock { overflow: hidden !important; }
         e.stopPropagation();
         return;
       }
-      if (e.key === 'Escape' && (!this.sourceMenu.hidden || !this.sortMenu.hidden || !this.multiMenu.hidden || !this.volumeMenu.hidden)) {
+      if (e.key === 'Escape' && (!this.sourceMenu.hidden || !this.sortMenu.hidden || !this.multiMenu.hidden || !this.repliesMenu.hidden || !this.volumeMenu.hidden)) {
         e.preventDefault(); e.stopPropagation();
         const button = !this.sourceMenu.hidden ? this.sourceBtn : !this.multiMenu.hidden ? this.multiBtn
-          : !this.volumeMenu.hidden ? this.soundBtn : this.sortBtn;
-        this.toggleSourceMenu(false); this.toggleMenu(false); this.toggleMultiMenu(false); this.toggleVolumeMenu(false); button.focus();
+          : !this.repliesMenu.hidden ? this.repliesBtn : !this.volumeMenu.hidden ? this.soundBtn : this.sortBtn;
+        this.toggleSourceMenu(false); this.toggleMenu(false); this.toggleMultiMenu(false); this.toggleRepliesMenu(false); this.toggleVolumeMenu(false); button.focus();
       }
       else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); this.close(); }
       else if (e.key === '-' || e.key === '[') { e.preventDefault(); this.setColumns(settings.columns - 1); }
@@ -1100,6 +1117,27 @@ html.xg-lock { overflow: hidden !important; }
       }
       multiWrap.append(this.multiBtn, this.multiMenu);
       this.renderMultiButton();
+
+      // Replies: the Media timeline carries posts the author wrote as replies, this filters them out.
+      const repliesWrap = el('div', 'xg-menu-wrap');
+      this.repliesBtn = el('button', 'xg-pill');
+      this.repliesBtn.setAttribute('aria-haspopup', 'menu');
+      this.repliesBtn.setAttribute('aria-expanded', 'false');
+      this.repliesBtn.addEventListener('click', (e) => { e.stopPropagation(); this.toggleRepliesMenu(); });
+      this.repliesMenu = el('div', 'xg-menu');
+      this.repliesMenu.hidden = true;
+      this.repliesMenu.setAttribute('role', 'menu');
+      this.repliesMenu.addEventListener('click', (e) => e.stopPropagation());
+      this.repliesMenu.append(el('div', 'xg-menu-title', T.replies));
+      for (const [value, label] of [['all', T.repliesAll], ['threads', T.repliesThreads], ['none', T.repliesNone]]) {
+        const item = el('button', 'xg-menu-item', `${ICONS.reply}<span>${label}</span><span class="xg-check">${ICONS.check}</span>`);
+        item.dataset.replies = value;
+        item.setAttribute('role', 'menuitemradio');
+        item.addEventListener('click', () => { this.toggleRepliesMenu(false); this.setReplies(value); this.repliesBtn.focus(); });
+        this.repliesMenu.append(item);
+      }
+      repliesWrap.append(this.repliesBtn, this.repliesMenu);
+      this.renderRepliesButton();
 
       // Sort menu
       const sortWrap = el('div', 'xg-menu-wrap');
@@ -1188,14 +1226,14 @@ html.xg-lock { overflow: hidden !important; }
       this.dupBtn.addEventListener('click', () => { settings.hideDuplicates = !settings.hideDuplicates; saveSettings(); this.renderDupButton(); this.renderHeading(); this.layout(); });
       this.renderDupButton();
 
-      tools.append(sourceWrap, sortWrap, cols, seg, multiWrap, this.videoBtn, soundWrap, this.groupBtn, this.dupBtn);
+      tools.append(sourceWrap, sortWrap, cols, seg, multiWrap, repliesWrap, this.videoBtn, soundWrap, this.groupBtn, this.dupBtn);
       header.append(back, this.heading, tools);
 
       this.grid = el('div', 'xg-grid');
       this.status = el('div', 'xg-status');
 
       root.append(header, this.grid, this.status);
-      root.addEventListener('click', () => { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleVolumeMenu(false); });
+      root.addEventListener('click', () => { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleRepliesMenu(false); this.toggleVolumeMenu(false); });
       document.body.append(root);
       this.root = root;
 
@@ -1336,6 +1374,32 @@ html.xg-lock { overflow: hidden !important; }
       }
     }
 
+    renderRepliesButton() {
+      const mode = settings.replies || 'all';
+      const label = mode === 'threads' ? T.repliesThreads : mode === 'none' ? T.repliesNone : T.repliesAll;
+      this.repliesBtn.innerHTML = `${ICONS.reply}<span class="xg-label">${label}</span>${ICONS.chevron}`;
+      const hidden = mode === 'all' ? 0 : this.items.filter((it) => this.isHiddenReply(it.tweet)).length;
+      this.repliesBtn.title = mode === 'all' ? `${T.replies}: ${label}` : `${T.replies}: ${label} · ${hidden} ${T.hidden}`;
+      this.repliesBtn.setAttribute('aria-label', this.repliesBtn.title);
+      this.repliesBtn.classList.toggle('xg-active', mode !== 'all');
+      for (const item of this.repliesMenu.querySelectorAll('.xg-menu-item')) item.setAttribute('aria-checked', String(item.dataset.replies === mode));
+    }
+
+    setReplies(mode) {
+      if (!['all', 'threads', 'none'].includes(mode) || settings.replies === mode) return;
+      const current = this.visibleItems()[this.lightboxIndex];
+      settings.replies = mode;
+      saveSettings();
+      this.stopPreview();
+      this.renderRepliesButton();
+      this.renderHeading();
+      this.layout();
+      if (current && this.lightboxIndex >= 0) {
+        this.lightboxIndex = this.visibleItems().indexOf(current);
+        this.renderLightbox();
+      }
+    }
+
     renderSourceButton() {
       const [label, icon] = settings.source === 'media' ? [T.sourceMedia, ICONS.grid]
         : settings.source === 'originals' ? [T.sourcePosts, ICONS.rows] : [T.sourceAuto, ICONS.copies];
@@ -1409,7 +1473,7 @@ html.xg-lock { overflow: hidden !important; }
 
     toggleVolumeMenu(force) {
       const show = force ?? this.volumeMenu.hidden;
-      if (show) { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleMultiMenu(false); }
+      if (show) { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleRepliesMenu(false); }
       this.volumeMenu.hidden = !show;
       this.soundBtn.setAttribute('aria-expanded', String(show));
       if (show) this.volumeSlider.focus({ preventScroll: true });
@@ -1447,23 +1511,30 @@ html.xg-lock { overflow: hidden !important; }
 
     toggleMenu(force) {
       const show = force ?? this.sortMenu.hidden;
-      if (show) { this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleVolumeMenu(false); }
+      if (show) { this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleRepliesMenu(false); this.toggleVolumeMenu(false); }
       this.sortMenu.hidden = !show;
       this.sortBtn.setAttribute('aria-expanded', String(show));
     }
 
     toggleSourceMenu(force) {
       const show = force ?? this.sourceMenu.hidden;
-      if (show) { this.toggleMenu(false); this.toggleMultiMenu(false); this.toggleVolumeMenu(false); }
+      if (show) { this.toggleMenu(false); this.toggleMultiMenu(false); this.toggleRepliesMenu(false); this.toggleVolumeMenu(false); }
       this.sourceMenu.hidden = !show;
       this.sourceBtn.setAttribute('aria-expanded', String(show));
     }
 
     toggleMultiMenu(force) {
       const show = force ?? this.multiMenu.hidden;
-      if (show) { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleVolumeMenu(false); }
+      if (show) { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleRepliesMenu(false); this.toggleVolumeMenu(false); }
       this.multiMenu.hidden = !show;
       this.multiBtn.setAttribute('aria-expanded', String(show));
+    }
+
+    toggleRepliesMenu(force) {
+      const show = force ?? this.repliesMenu.hidden;
+      if (show) { this.toggleMenu(false); this.toggleSourceMenu(false); this.toggleMultiMenu(false); this.toggleVolumeMenu(false); }
+      this.repliesMenu.hidden = !show;
+      this.repliesBtn.setAttribute('aria-expanded', String(show));
     }
 
     setStatus(state, payload) {
@@ -1629,6 +1700,7 @@ html.xg-lock { overflow: hidden !important; }
         this.layout();
         this.renderHeading();
         this.renderDupButton();
+        this.renderRepliesButton();
       }
       return added;
     }
@@ -1846,7 +1918,15 @@ html.xg-lock { overflow: hidden !important; }
 
     isHidden(item) {
       return (settings.hideDuplicates && Boolean(item.dupOf)) || (settings.showVideos === false && item.media.kind !== 'photo')
-        || Boolean(item.el?.dataset?.xgHide);
+        || this.isHiddenReply(item.tweet) || Boolean(item.el?.dataset?.xgHide);
+    }
+
+    // "threads" keeps the replies an author wrote under their own post (a thread continuing the same work)
+    // and drops the ones addressed to somebody else; "none" drops every reply.
+    isHiddenReply(tweet) {
+      if (!tweet?.isReply || !settings.replies || settings.replies === 'all') return false;
+      if (settings.replies === 'none') return true;
+      return tweet.replyToUserId !== tweet.userId;
     }
 
     // Items in on-screen order (grouping may reorder them); drives the lightbox.
