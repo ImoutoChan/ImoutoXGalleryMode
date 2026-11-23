@@ -2,7 +2,7 @@
 // @name         X Gallery Mode
 // @name:ru      X Галерея профиля
 // @namespace    imouto.x-gallery-mode
-// @version      1.9.0
+// @version      1.10.0
 // @description  Gallery tab to X/Twitter profiles: uncropped images/videos in a fullscreen masonry grid, highly customizable, downloads, deduplication, Popular/Most recent
 // @description:ru  Вкладка «Gallery» в профилях X/Twitter: изображения целиком без обрезки, любое число колонок, на всю ширину экрана, скачивание, открытие поста, лайки, скрытие дубликатов, фильтр ответов, без репостов, сортировка «популярные / новые».
 // @author       ImoutoChan
@@ -25,6 +25,9 @@
 
 /*
   Changelog
+
+  1.10.0 — 2026-11-24
+    • Copy the full-size photo from the lightbox with Ctrl+C (Command+C on Mac) or the Copy button.
 
   1.9.0 — 2026-09-18
     • "Replies" menu in the header: "Show all" (default), "Own threads only" — replies addressed to other
@@ -225,8 +228,8 @@
 
   // Shown in the About dialog. VERSION and UPDATED must match @version and the newest changelog entry;
   // tests/gallery.test.js fails when they drift apart.
-  const VERSION = '1.9.0';
-  const UPDATED = '2026-09-18';
+  const VERSION = '1.10.0';
+  const UPDATED = '2026-11-24';
   const REPO_URL = 'https://github.com/ImoutoChan/ImoutoXGalleryMode';
   const LOGO = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDMxLjM0IDI3LjI3Ij48ZGVmcz48c3R5bGU+LmR7ZmlsbDojZmZmO30uZXtmaWxsOiMyMzFmMjA7fTwvc3R5bGU+PC9kZWZzPjxnIGlkPSJhIi8+PGcgaWQ9ImIiPjxnIGlkPSJjIj48Zz48cGF0aCBjbGFzcz0iZSIgZD0iTTE5Ljk2LC44MmgwYy0xLjY2LC42LTMuMjMsMS42LTQuNDQsMi44NmgwYy0uOTYtMS4yMy0yLjQyLTIuMi00LjA0LTIuODRoMEM2LjA2LTEuNjYtMS43NywxLjU4LC4zNiw5LjR2LjAzYy41NiwxLjc4LDEuODQsNC4yOCw0LjE3LDZ2MGgwYzMuMTksMi4zMywxMC4zMiw4LjksMTEuMDgsMTEuODNoMGMuODEtMy4yNyw2LjcyLTcuMjgsMTEuMDctMTEuNTZoMGMyLjA0LTIsMy43My00LjA4LDQuMzYtNi4yMUMzMi44MSwyLjQ3LDI2LjAzLTEuOTEsMTkuOTYsLjgyWiIvPjxwYXRoIGNsYXNzPSJkIiBkPSJNMTkuOTcsLjgyYy0xLjY3LC42LTMuMjMsMS42LTQuNDUsMi44Ni0uOTYtMS4yMi0yLjQxLTIuMi00LjA0LTIuODNDNi4wNS0xLjY3LTEuNzcsMS41OCwuMzYsOS40YzAsLjAxLDAsLjAyLDAsLjAyLC41NywxLjc4LDEuODUsNC4yOCw0LjE4LDYuMDEsMS41OSwxLjE3LDQuMTgsMy4zOSw2LjQ2LDUuNjksMi4yNywyLjMsNC4yNSw0LjY4LDQuNjMsNi4xNCwuNC0xLjY0LDIuMDgtMy40Niw0LjItNS40LDIuMTMtMS45NSw0LjctNC4wMiw2Ljg3LTYuMTYsMi4wNi0yLjAxLDMuNzMtNC4wOCw0LjM3LTYuMkMzMi44MSwyLjQ3LDI2LjA0LTEuOTEsMTkuOTcsLjgyWm0tLjMsMS41MmMuMTMsLjEsMS45NCwxLjg3LDMuMjIsNi44NS0uNjgsMS4wOC0yLjA2LDMuMTItMi43Niw0LjE1LDEuMzUtMi40Mi0zLjktOC42Ni0zLjktOC42NiwxLTEuMDUsMi4wNy0xLjgzLDMuNDQtMi4zM1ptLTcuNzcsLjA3YzEuMjksLjUyLDIuMTgsMS4xOSwyLjk0LDIuMTgsMCwwLTQuODQsNS4xNS00Ljg5LDcuNDItLjY3LTEuMDctMS4wOS0xLjUyLTEuNzEtMi43NiwuNTEtMS43NCwxLjk3LTUuNTUsMy42Ny02Ljg0Wm0tMS45Ni0uOTJjLS4zLC4xMi0yLjMsMS4wMS01LjQsMy4zNkMxLjc0LDYuOTksMS4zMiw3LjUsMS4yNCw3Ljc5LC40MiwyLjI3LDYuMjcsMCw5Ljk0LDEuNVpNMS44NCw5LjY5Yy4wOS0uMywuNTctMS44NCwzLjQzLTQsMy4yNy0yLjUsNS41MS0zLjU3LDUuNTktMy42LTEuODEsMS4zNy0zLjAzLDQuOTMtMy41OCw2Ljc5LS40MSwxLjA1LTEuNTgsMi43Mi0yLjE0LDUuMzYtMS45My0xLjQ0LTIuODItMy4wNi0zLjMtNC41NFptMTMuMTEsMTQuOTFjLS42MS0yLjQzLTguOTUtOS41MS04Ljk1LTkuNTEsLjU4LTIuNzIsMS4zLTMuMTQsMS43MS00LjM0LDIuNjEsNC43Nyw3LjEyLDkuNjgsNy4yNCwxMy44NFptLTQuMzQtMTEuMzVjLjA1LTIuMzYsNC45Mi03Ljg0LDQuOTItNy44NCwxLjc0LDIuNzUsMi42OSw0LjAyLDMuMyw1LjI5LDIuMjcsNC43OC0xLjYyLDQuMzctMi45NywxMi43LTEuMDItMy41Ny0zLjEyLTYuMTgtNS4yNC0xMC4xNVptNS45OCwxMS4xMWMxLjUyLTcuNTcsNC4yNy05Ljk3LDYuODItMTQuMjcsMS4wMywxLjcyLDEuNCwyLjk5LDEuODgsNS4zLTMuNTcsMy41NS04LjA1LDYuMjYtOC43LDguOTdabTkuNTctOS43N2MtLjQ3LTIuMzEtMS4wOC0zLjkxLTIuMTEtNS42NC0xLjItNC42NS0zLjA0LTYuNC0zLjM3LTYuNjgsMy4zNywxLjk1LDcuNzksNC4xMyw5LjA3LDcuMTctLjUyLDEuNzYtMS45MSwzLjQ5LTMuNTksNS4xNVptMy45Ni02LjQyYy0xLjI2LTIuOTktNS40OS00LjcxLTguODItNi42NCw0LjYyLTEuOTgsOS41NCwyLjA3LDguODIsNi42NFoiLz48cGF0aCBjbGFzcz0iZCIgZD0iTTE1LjMyLDYuMjRjMCwxLjM3LS44NywyLjY1LTEuMDYsMy4wMS0zLjIyLDQuNDgtLjYsNy4xMiwxLjA1LDExLjE5LDUuMDctOC44MSwyLjMxLTYuNTQsMC0xNC4yWm0uMDgsNy40OWMtLjQ4LC45Mi0uNjksMi4xNi0uNjYsMy4zNy0uOTMtMS45My0xLjczLTMuNTEtLjA1LTUuODgsLjEzLS4yNCwuNjktMS4wNywuNjktMS45NiwxLjM5LDQuNjEsMi45OCwzLjc3LC41OCw4LjE3LC4xMS0xLjM1LS4wOC0yLjc2LS41Ni0zLjdaIi8+PC9nPjwvZz48L2c+PC9zdmc+';
 
@@ -240,6 +243,7 @@
       tab: 'Gallery', photos: 'media', posts: 'posts', videos: 'Videos', popular: 'Popular', recent: 'Most recent',
       sortBy: 'Sort by', columns: 'Columns', fewer: 'Fewer columns', more: 'More columns',
       hideDups: 'Hide duplicates', hidden: 'hidden', download: 'Download', open: 'Open post',
+      copy: 'Copy', copying: 'Copying…', copied: 'Copied', copyFailed: 'Could not copy photo',
       loading: 'Loading…', end: 'You’ve seen it all', empty: 'No photos yet', retry: 'Retry',
       error: 'Something went wrong', rateLimited: 'X is rate limiting requests. Retrying in',
       loadMore: 'Load more', back: 'Back', close: 'Close', prev: 'Previous', next: 'Next',
@@ -263,6 +267,7 @@
       tab: 'Галерея', photos: 'медиа', posts: 'постов', videos: 'Видео', popular: 'Популярные', recent: 'Сначала новые',
       sortBy: 'Сортировка', columns: 'Колонки', fewer: 'Меньше колонок', more: 'Больше колонок',
       hideDups: 'Скрывать дубликаты', hidden: 'скрыто', download: 'Скачать', open: 'Открыть пост',
+      copy: 'Скопировать', copying: 'Копирование…', copied: 'Скопировано', copyFailed: 'Не удалось скопировать фото',
       loading: 'Загрузка…', end: 'Это всё', empty: 'Фото пока нет', retry: 'Повторить',
       error: 'Что-то пошло не так', rateLimited: 'X ограничил частоту запросов. Повтор через',
       loadMore: 'Загрузить ещё', back: 'Назад', close: 'Закрыть', prev: 'Предыдущее', next: 'Следующее',
@@ -680,7 +685,7 @@
   })();
 
   /* ═══════════════════════════════════════════════════════════════════════
-     Downloads
+     Downloads and clipboard
      ═══════════════════════════════════════════════════════════════════════ */
 
   // What a download fetches: always the original. Photos use name=orig in the format X stored them in
@@ -717,6 +722,23 @@
       console.warn('[X Gallery] download failed', e);
       window.open(url, '_blank', 'noopener');
     } finally { button?.classList.remove('xg-busy'); }
+  }
+
+  async function photoPng(media) {
+    const image = new Image();
+    image.crossOrigin = 'anonymous';
+    image.src = mediaUrl(media, 'orig');
+    await image.decode();
+    const canvas = el('canvas');
+    canvas.width = image.naturalWidth;
+    canvas.height = image.naturalHeight;
+    canvas.getContext('2d').drawImage(image, 0, 0);
+    return new Promise((resolve, reject) => {
+      canvas.toBlob((blob) => {
+        if (blob) resolve(blob);
+        else reject(new Error('Could not encode photo as PNG'));
+      }, 'image/png');
+    });
   }
 
   /* ═══════════════════════════════════════════════════════════════════════
@@ -924,7 +946,7 @@ html.xg-lock { overflow: hidden !important; }
 .xg-lb-stats { display: flex; align-items: center; gap: 16px; color: #71767b; font-size: 14px; white-space: nowrap; }
 .xg-lb-stats span { display: inline-flex; align-items: center; gap: 5px; }
 .xg-lb-stats svg { width: 18px; height: 18px; }
-.xg-lb-actions { display: flex; align-items: center; gap: 8px; }
+.xg-lb-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
 .xg-lb-actions .xg-pill { color: #e7e9ea; border-color: #536471; }
 .xg-lb-actions .xg-pill:hover { background: rgba(255,255,255,0.1); }
 @media (max-width: 900px) { .xg-lb-stats { display: none; } .xg-heading-text { display: none; } }
@@ -1042,6 +1064,12 @@ html.xg-lock { overflow: hidden !important; }
         if (e.key === 'Escape') { e.preventDefault(); this.closeLightbox(); }
         else if (e.key === 'ArrowLeft') { e.preventDefault(); this.stepLightbox(-1); }
         else if (e.key === 'ArrowRight') { e.preventDefault(); this.stepLightbox(1); }
+        else if ((e.ctrlKey || e.metaKey) && !e.altKey && !e.shiftKey && (e.code === 'KeyC' || e.key.toLowerCase() === 'c') &&
+          !e.target?.isContentEditable && !window.getSelection()?.toString() &&
+          this.visibleItems()[this.lightboxIndex]?.media.kind === 'photo') {
+          e.preventDefault();
+          if (!e.repeat) this.copyLightboxPhoto();
+        }
         e.stopPropagation();
         return;
       }
@@ -2086,6 +2114,7 @@ html.xg-lock { overflow: hidden !important; }
             <div class="xg-lb-actions">
               <button class="xg-pill xg-lb-search" title="${T.searchHint}">${ICONS.search}<span>${T.search}</span></button>
               <button class="xg-pill xg-lb-dl">${ICONS.download}<span>${T.download}</span></button>
+              <button class="xg-pill xg-lb-copy" aria-keyshortcuts="Control+C Meta+C">${ICONS.copies}<span aria-live="polite">${T.copy}</span></button>
               <a class="xg-pill xg-lb-open" target="_blank" rel="noopener">${ICONS.external}<span>${T.open}</span></a>
             </div>
           </div>`;
@@ -2094,6 +2123,7 @@ html.xg-lock { overflow: hidden !important; }
         lb.querySelector('.xg-lb-next').addEventListener('click', (e) => { e.stopPropagation(); this.stepLightbox(1); });
         lb.querySelector('.xg-lb-stage').addEventListener('click', (e) => { if (e.target === e.currentTarget || e.target.classList.contains('xg-lb-img')) this.closeLightbox(); });
         lb.querySelector('.xg-lb-dl').addEventListener('click', (e) => { const it = this.visibleItems()[this.lightboxIndex]; if (it) downloadItem(it, e.currentTarget); });
+        lb.querySelector('.xg-lb-copy').addEventListener('click', () => this.copyLightboxPhoto());
         lb.querySelector('.xg-lb-search').addEventListener('click', () => { const it = this.visibleItems()[this.lightboxIndex]; if (it) openInBackground(searchUrl(it.media)); });
         // The spinner stays while a sharper photo is still pending and while the player is buffering.
         const lbImg = lb.querySelector('.xg-lb-img');
@@ -2143,6 +2173,34 @@ html.xg-lock { overflow: hidden !important; }
       this.wheelAt = now;
     }
 
+    async copyLightboxPhoto() {
+      const item = this.visibleItems()[this.lightboxIndex];
+      if (item?.media.kind !== 'photo') return;
+      const button = this.lb.querySelector('.xg-lb-copy');
+      if (button.classList.contains('xg-busy')) return;
+      const label = button.querySelector('span');
+      clearTimeout(this.copyFeedbackTimer);
+      button.classList.add('xg-busy');
+      label.textContent = T.copying;
+      let result = T.copied;
+      try {
+        if (typeof ClipboardItem !== 'function' || !navigator.clipboard?.write) throw new Error('Image clipboard unavailable');
+        const png = photoPng(item.media);
+        // A rejected clipboard write may never consume the image promise.
+        png.catch(() => {});
+        // Start the write in the input event to preserve transient user activation.
+        await navigator.clipboard.write([new ClipboardItem({ 'image/png': png })]);
+      } catch {
+        result = T.copyFailed;
+      } finally {
+        button.classList.remove('xg-busy');
+      }
+      if (this.visibleItems()[this.lightboxIndex] === item) {
+        label.textContent = result;
+        this.copyFeedbackTimer = setTimeout(() => { label.textContent = T.copy; }, 2500);
+      }
+    }
+
     stepLightbox(delta) {
       const list = this.visibleItems();
       if (!list.length) return;
@@ -2159,9 +2217,12 @@ html.xg-lock { overflow: hidden !important; }
       const lb = this.lb;
       const img = lb.querySelector('.xg-lb-img');
       const video = lb.querySelector('.xg-lb-video');
+      const copy = lb.querySelector('.xg-lb-copy');
       const isVideo = media.kind !== 'photo';
       img.hidden = isVideo;
       video.hidden = !isVideo;
+      copy.hidden = isVideo;
+      copy.querySelector('span').textContent = T.copy;
       if (isVideo) {
         img.removeAttribute('src');
         this.lbPending = null;

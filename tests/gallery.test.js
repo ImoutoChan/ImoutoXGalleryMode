@@ -60,6 +60,7 @@ function harness(pages = [], sort = 'popular', sourceChoice = 'auto') {
   vm.runInContext(
     section('  class ApiError', '  const QueryIds') +
     section('  function parseTimeline(', '  // Splits a pbs.twimg.com URL') +
+    section('  async function photoPng(', '  /* ═') +
     section('  class Gallery', '  const gallery = new Gallery();') +
     '\nglobalThis.Gallery = Gallery; globalThis.ApiStatus = ApiStatus;', context);
   const gallery = Object.create(context.Gallery.prototype);
@@ -71,7 +72,7 @@ function harness(pages = [], sort = 'popular', sourceChoice = 'auto') {
     addTweets(tweets) { this.added.push(...tweets); this.items.push(...tweets); return tweets.length; },
     showError(error) { this.error = error; this.setStatus('error'); },
   });
-  return { gallery, calls, videos, nodes, images, cachedImages, parse: context.parseTimeline, apiStatus: context.ApiStatus, settings: context.settings };
+  return { gallery, calls, videos, nodes, images, cachedImages, parse: context.parseTimeline, apiStatus: context.ApiStatus, settings: context.settings, context };
 }
 
 function page(cursor, tweets = []) {
@@ -434,6 +435,77 @@ test('lightbox paints the cached grid variant first and swaps in the large one w
   assert.equal(img.src, `${base}?format=jpg&name=orig`);
   assert.equal(images.length, before);
   assert.equal(spinner.hidden, true);
+});
+
+test('Ctrl+C copies the open photo unless text is selected or the user is typing', () => {
+  const { gallery: g, context } = harness();
+  let selection = '';
+  let copies = 0;
+  context.window = { getSelection: () => selection };
+  g.copyLightboxPhoto = () => copies++;
+  const photo = { media: { kind: 'photo' } };
+  g.ordered = [photo, { media: { kind: 'gif' } }, { media: { kind: 'video' } }];
+
+  const pressCopy = (index, options) => {
+    let prevented = false;
+    g.lightboxIndex = index;
+    g.onKeyDown({ key: 'c', code: 'KeyC', ctrlKey: true, stopPropagation() {},
+      preventDefault() { prevented = true; }, ...options });
+    return prevented;
+  };
+
+  assert.equal(pressCopy(0, { key: '\u0441' }), true, 'physical key also works in the Russian layout');
+  assert.equal(pressCopy(0, { ctrlKey: false, metaKey: true }), true);
+  assert.equal(pressCopy(0, { repeat: true }), true, 'holding Ctrl+C suppresses native copy without a second write');
+  assert.equal(pressCopy(0, { target: { tagName: 'INPUT' } }), false);
+  assert.equal(pressCopy(0, { target: { isContentEditable: true } }), false);
+  assert.equal(pressCopy(1), false);
+  assert.equal(pressCopy(2), false);
+  assert.equal(pressCopy(-1), false);
+  selection = 'Post text';
+  assert.equal(pressCopy(0), false);
+  assert.equal(copies, 2);
+});
+
+test('copy writes the full-size photo as a PNG and reports clipboard failure', async () => {
+  const { gallery: g, context } = harness();
+  const image = { naturalWidth: 3000, naturalHeight: 4000, async decode() {} };
+  const png = new Blob([], { type: 'image/png' });
+  const canvas = {
+    getContext: () => ({ drawImage(loadedImage, x, y) { assert.equal(loadedImage, image); assert.deepEqual([x, y], [0, 0]); } }),
+    toBlob(callback, type) { assert.equal(type, 'image/png'); callback(png); },
+  };
+  const label = {};
+  const classes = new Set();
+  const button = { classList: { contains: (cls) => classes.has(cls), add: (cls) => classes.add(cls), remove: (cls) => classes.delete(cls) }, querySelector: () => label };
+  g.ordered = [{ media: { kind: 'photo', base: 'https://pbs.twimg.com/media/A', ext: 'jpg' } }];
+  g.lightboxIndex = 0;
+  g.lb = { querySelector: () => button };
+  const writes = [];
+  Object.assign(context, {
+    Image: function () { return image; }, el: () => canvas,
+    clearTimeout() {}, setTimeout() {},
+    T: { copying: 'Copying', copied: 'Copied', copyFailed: 'Failed' },
+    ClipboardItem: function (data) { this.data = data; },
+    navigator: { clipboard: { async write([item]) { writes.push(item.data['image/png']); await writes.at(-1); } } },
+  });
+
+  const copying = g.copyLightboxPhoto();
+  assert.equal(writes.length, 1, 'clipboard write starts synchronously from the user action');
+  await g.copyLightboxPhoto();
+  assert.equal(writes.length, 1, 'a pending write is not requeued');
+  await copying;
+  assert.equal(image.crossOrigin, 'anonymous');
+  assert.equal(image.src, 'https://pbs.twimg.com/media/A?format=jpg&name=orig');
+  assert.deepEqual([canvas.width, canvas.height], [3000, 4000]);
+  assert.equal(await writes[0], png);
+  assert.equal(label.textContent, 'Copied');
+  assert.equal(classes.size, 0);
+
+  context.navigator.clipboard.write = async () => { throw new Error('Clipboard denied'); };
+  await g.copyLightboxPhoto();
+  assert.equal(label.textContent, 'Failed');
+  assert.equal(classes.size, 0);
 });
 
 test('downloads always take the original: name=orig in the stored format, highest-bitrate mp4 for videos', () => {

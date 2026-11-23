@@ -13,6 +13,7 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 * **Popular** and Most recent sort orders
 * Original quality downloads with dated file names
 * Keyboard arrows and mouse wheel navigation
+* Full-size photo copying from the lightbox
 * Hover previews for videos with a seek bar
 * Volume control
 * Duplicate hiding
@@ -57,6 +58,7 @@ For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA 
 - **Group by month** — a header toggle: separators such as "September 2026 · 12 media", months from newest to oldest, the current sort order inside a month; the lightbox follows the on-screen order.
 - **Videos and GIFs too** — the grid shows a poster with a ▶ badge and the duration (or "GIF"). Hovering a card plays the video muted in a loop; leaving the card stops it and brings the poster back. Videos load only on hover. A progress bar appears under a playing preview: click or drag it to seek. The lightbox has a player (GIFs loop silently), downloads take the best-bitrate mp4. The "Videos" toggle in the header hides them when you only want pictures. The "Sound" pill (off by default) opens a volume popover with a slider and a mute button; the level applies to previews and to the lightbox player, and changes made inside the player are remembered as well. GIFs are always silent.
 - **Under every photo** — like count, date, a reverse image search button (IQDB, opens in a background tab), a button to download the original, a button to open the post in a new tab. Clicking a photo opens the lightbox (←/→ arrows or the mouse wheel flip photos, Esc closes; search, download and stats live there too: likes, reposts, views). The lightbox paints the variant already loaded for the grid at once and swaps in the large one when it arrives, so flipping never shows the previous photo while the next downloads; a small spinner in the corner shows while the sharper version or a video is still loading.
+- **Copy a photo** — press Ctrl+C (Command+C on Mac) in the lightbox or click **Copy** in the bottom bar to put the full-size photo on the clipboard. Ctrl+C still copies any selected post text.
 - **Duplicate hiding** — identical pictures posted several times collapse into one (the first in the current sort order stays). The comparison is perceptual: dHash + normalised correlation of 16×16 thumbnails, plus exact media key matches. The button shows how many are hidden; the toggle switches off with one click.
 - **Replies** — a menu with the reply icon: "Show all" (default), "Own threads only" and "Hide all". "Own threads only" removes the posts the author wrote as replies to somebody else, which is what fills a media feed with reaction pictures, and keeps the replies written under their own posts, where a thread usually continues the same work. "Hide all" leaves originals alone. A reply is recognised by `in_reply_to_status_id_str` (with `conversation_id_str` as a fallback) and the addressee by `in_reply_to_user_id_str`, so no extra requests are needed. The mode persists and switches without reloading the feed; the pill tooltip shows how many media are hidden. Replies to other people come from the "Media" source only, "Posts" never returns them, while replies to one's own posts appear in both.
 - **No reposts** — only the author's own posts are shown.
@@ -75,7 +77,7 @@ For downloads in Tampermonkey it is worth enabling `Settings → Downloads BETA 
 | Replies | `in_reply_to_status_id_str` and `in_reply_to_user_id_str` of the post, with `conversation_id_str` as a fallback when X stops sending them. `UserMedia` includes the replies the author wrote, `UserOriginalsTimeline` returns only their own posts and threads |
 | Videos | The post's `video_info.variants`: the mp4 with the highest bitrate is used for playback and download, the poster is `media_url_https` with the same `name=…` sizes as photos |
 | Query identifiers (`queryId`) | Read from X's main JS bundle (`main.*.js`) and cached per bundle version; when they go stale (HTTP 400/404) they are re-read automatically. The script ships fallback values. |
-| Images | `pbs.twimg.com/media/<id>?format=<ext>&name=<small|medium|large|orig>` — the variant is picked for the column width and DPR; more columns means higher quality |
+| Images | `pbs.twimg.com/media/<id>?format=<ext>&name=<small|medium|large|orig>` — the grid variant is picked for the column width and DPR; clipboard copies use `orig` and are encoded as PNG |
 
 X's rate limiting (HTTP 429) is handled: the gallery shows a countdown and resumes on its own.
 
