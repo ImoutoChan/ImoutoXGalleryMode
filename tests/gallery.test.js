@@ -532,6 +532,33 @@ test('downloads always take the original: name=orig in the stored format, highes
   for (const target of [photo, clip]) assert.doesNotMatch(target.url, /name=(small|medium|large|thumb|900x900|4096x4096)/);
 });
 
+test('profile tabs are found in either layout by the current handle and media route', () => {
+  const tablist = (...hrefs) => ({ querySelectorAll(selector) {
+    assert.equal(selector, 'a[role="tab"][href]');
+    return hrefs.map((href) => ({ getAttribute: () => href }));
+  } });
+  const unrelated = tablist('/Other/media');
+  const oldLayout = tablist('/Artist', '/Artist/media');
+  const newLayout = tablist('/Artist/with_replies', '/Artist/media?tab=photos');
+  const layouts = new Map([
+    ['main [role="tablist"]', newLayout],
+    ['[data-testid="primaryColumn"] [role="tablist"]', oldLayout],
+  ]);
+
+  for (const [scope, expected] of layouts) {
+    const context = vm.createContext({
+      location: { pathname: '/artist/with_replies' },
+      document: { querySelectorAll: (selector) => selector.split(', ').includes(scope) ? [unrelated, expected] : [] },
+    });
+    vm.runInContext(section('  function findProfileTablist(', '  function ensureTab('), context);
+    const info = context.findProfileTablist();
+    assert.equal(info?.tablist, expected);
+    assert.equal(info.screenName, 'Artist');
+    context.location.pathname = '/home';
+    assert.equal(context.findProfileTablist(), null);
+  }
+});
+
 test('VERSION and UPDATED agree with @version and the newest changelog entry', () => {
   const version = source.match(/^\/\/ @version\s+(\S+)$/m)[1];
   const entry = source.match(/\n  Changelog\n\n  (\d+\.\d+\.\d+) — (\d{4}-\d{2}-\d{2})\n/);

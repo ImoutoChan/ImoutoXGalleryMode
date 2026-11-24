@@ -2,7 +2,7 @@
 // @name         X Gallery Mode
 // @name:ru      X Галерея профиля
 // @namespace    imouto.x-gallery-mode
-// @version      1.10.0
+// @version      1.10.2
 // @description  Gallery tab to X/Twitter profiles: uncropped images/videos in a fullscreen masonry grid, highly customizable, downloads, deduplication, Popular/Most recent
 // @description:ru  Вкладка «Gallery» в профилях X/Twitter: изображения целиком без обрезки, любое число колонок, на всю ширину экрана, скачивание, открытие поста, лайки, скрытие дубликатов, фильтр ответов, без репостов, сортировка «популярные / новые».
 // @author       ImoutoChan
@@ -25,6 +25,9 @@
 
 /*
   Changelog
+
+  1.10.2 — 2026-11-24
+    • Restore the Gallery tab on profiles using the new X web layout.
 
   1.10.0 — 2026-11-24
     • Copy the full-size photo from the lightbox with Ctrl+C (Command+C on Mac) or the Copy button.
@@ -228,7 +231,7 @@
 
   // Shown in the About dialog. VERSION and UPDATED must match @version and the newest changelog entry;
   // tests/gallery.test.js fails when they drift apart.
-  const VERSION = '1.10.0';
+  const VERSION = '1.10.2';
   const UPDATED = '2026-11-24';
   const REPO_URL = 'https://github.com/ImoutoChan/ImoutoXGalleryMode';
   const LOGO = 'data:image/svg+xml;base64,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48c3ZnIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyIgdmlld0JveD0iMCAwIDMxLjM0IDI3LjI3Ij48ZGVmcz48c3R5bGU+LmR7ZmlsbDojZmZmO30uZXtmaWxsOiMyMzFmMjA7fTwvc3R5bGU+PC9kZWZzPjxnIGlkPSJhIi8+PGcgaWQ9ImIiPjxnIGlkPSJjIj48Zz48cGF0aCBjbGFzcz0iZSIgZD0iTTE5Ljk2LC44MmgwYy0xLjY2LC42LTMuMjMsMS42LTQuNDQsMi44NmgwYy0uOTYtMS4yMy0yLjQyLTIuMi00LjA0LTIuODRoMEM2LjA2LTEuNjYtMS43NywxLjU4LC4zNiw5LjR2LjAzYy41NiwxLjc4LDEuODQsNC4yOCw0LjE3LDZ2MGgwYzMuMTksMi4zMywxMC4zMiw4LjksMTEuMDgsMTEuODNoMGMuODEtMy4yNyw2LjcyLTcuMjgsMTEuMDctMTEuNTZoMGMyLjA0LTIsMy43My00LjA4LDQuMzYtNi4yMUMzMi44MSwyLjQ3LDI2LjAzLTEuOTEsMTkuOTYsLjgyWiIvPjxwYXRoIGNsYXNzPSJkIiBkPSJNMTkuOTcsLjgyYy0xLjY3LC42LTMuMjMsMS42LTQuNDUsMi44Ni0uOTYtMS4yMi0yLjQxLTIuMi00LjA0LTIuODNDNi4wNS0xLjY3LTEuNzcsMS41OCwuMzYsOS40YzAsLjAxLDAsLjAyLDAsLjAyLC41NywxLjc4LDEuODUsNC4yOCw0LjE4LDYuMDEsMS41OSwxLjE3LDQuMTgsMy4zOSw2LjQ2LDUuNjksMi4yNywyLjMsNC4yNSw0LjY4LDQuNjMsNi4xNCwuNC0xLjY0LDIuMDgtMy40Niw0LjItNS40LDIuMTMtMS45NSw0LjctNC4wMiw2Ljg3LTYuMTYsMi4wNi0yLjAxLDMuNzMtNC4wOCw0LjM3LTYuMkMzMi44MSwyLjQ3LDI2LjA0LTEuOTEsMTkuOTcsLjgyWm0tLjMsMS41MmMuMTMsLjEsMS45NCwxLjg3LDMuMjIsNi44NS0uNjgsMS4wOC0yLjA2LDMuMTItMi43Niw0LjE1LDEuMzUtMi40Mi0zLjktOC42Ni0zLjktOC42NiwxLTEuMDUsMi4wNy0xLjgzLDMuNDQtMi4zM1ptLTcuNzcsLjA3YzEuMjksLjUyLDIuMTgsMS4xOSwyLjk0LDIuMTgsMCwwLTQuODQsNS4xNS00Ljg5LDcuNDItLjY3LTEuMDctMS4wOS0xLjUyLTEuNzEtMi43NiwuNTEtMS43NCwxLjk3LTUuNTUsMy42Ny02Ljg0Wm0tMS45Ni0uOTJjLS4zLC4xMi0yLjMsMS4wMS01LjQsMy4zNkMxLjc0LDYuOTksMS4zMiw3LjUsMS4yNCw3Ljc5LC40MiwyLjI3LDYuMjcsMCw5Ljk0LDEuNVpNMS44NCw5LjY5Yy4wOS0uMywuNTctMS44NCwzLjQzLTQsMy4yNy0yLjUsNS41MS0zLjU3LDUuNTktMy42LTEuODEsMS4zNy0zLjAzLDQuOTMtMy41OCw2Ljc5LS40MSwxLjA1LTEuNTgsMi43Mi0yLjE0LDUuMzYtMS45My0xLjQ0LTIuODItMy4wNi0zLjMtNC41NFptMTMuMTEsMTQuOTFjLS42MS0yLjQzLTguOTUtOS41MS04Ljk1LTkuNTEsLjU4LTIuNzIsMS4zLTMuMTQsMS43MS00LjM0LDIuNjEsNC43Nyw3LjEyLDkuNjgsNy4yNCwxMy44NFptLTQuMzQtMTEuMzVjLjA1LTIuMzYsNC45Mi03Ljg0LDQuOTItNy44NCwxLjc0LDIuNzUsMi42OSw0LjAyLDMuMyw1LjI5LDIuMjcsNC43OC0xLjYyLDQuMzctMi45NywxMi43LTEuMDItMy41Ny0zLjEyLTYuMTgtNS4yNC0xMC4xNVptNS45OCwxMS4xMWMxLjUyLTcuNTcsNC4yNy05Ljk3LDYuODItMTQuMjcsMS4wMywxLjcyLDEuNCwyLjk5LDEuODgsNS4zLTMuNTcsMy41NS04LjA1LDYuMjYtOC43LDguOTdabTkuNTctOS43N2MtLjQ3LTIuMzEtMS4wOC0zLjkxLTIuMTEtNS42NC0xLjItNC42NS0zLjA0LTYuNC0zLjM3LTYuNjgsMy4zNywxLjk1LDcuNzksNC4xMyw5LjA3LDcuMTctLjUyLDEuNzYtMS45MSwzLjQ5LTMuNTksNS4xNVptMy45Ni02LjQyYy0xLjI2LTIuOTktNS40OS00LjcxLTguODItNi42NCw0LjYyLTEuOTgsOS41NCwyLjA3LDguODIsNi42NFoiLz48cGF0aCBjbGFzcz0iZCIgZD0iTTE1LjMyLDYuMjRjMCwxLjM3LS44NywyLjY1LTEuMDYsMy4wMS0zLjIyLDQuNDgtLjYsNy4xMiwxLjA1LDExLjE5LDUuMDctOC44MSwyLjMxLTYuNTQsMC0xNC4yWm0uMDgsNy40OWMtLjQ4LC45Mi0uNjksMi4xNi0uNjYsMy4zNy0uOTMtMS45My0xLjczLTMuNTEtLjA1LTUuODgsLjEzLS4yNCwuNjktMS4wNywuNjktMS45NiwxLjM5LDQuNjEsMi45OCwzLjc3LC41OCw4LjE3LC4xMS0xLjM1LS4wOC0yLjc2LS41Ni0zLjdaIi8+PC9nPjwvZz48L2c+PC9zdmc+';
@@ -2319,11 +2322,14 @@ html.xg-lock { overflow: hidden !important; }
   const gallery = new Gallery();
 
   function findProfileTablist() {
-    for (const tablist of document.querySelectorAll('[data-testid="primaryColumn"] [role="tablist"]')) {
-      const media = tablist.querySelector('a[role="tab"][href$="/media"]');
-      if (!media) continue;
-      const m = media.getAttribute('href').match(/^\/([A-Za-z0-9_]{1,15})\/media$/);
-      if (m) return { tablist, screenName: m[1] };
+    const profile = location.pathname.split('/')[1]?.toLowerCase();
+    if (!profile) return null;
+    for (const tablist of document.querySelectorAll('main [role="tablist"], [data-testid="primaryColumn"] [role="tablist"]')) {
+      for (const media of tablist.querySelectorAll('a[role="tab"][href]')) {
+        const path = media.getAttribute('href').split(/[?#]/, 1)[0];
+        const match = path.match(/^\/([A-Za-z0-9_]{1,15})\/media$/);
+        if (match?.[1].toLowerCase() === profile) return { tablist, media, screenName: match[1] };
+      }
     }
     return null;
   }
@@ -2331,30 +2337,36 @@ html.xg-lock { overflow: hidden !important; }
   function ensureTab() {
     const info = findProfileTablist();
     if (!info) return;
-    const { tablist, screenName } = info;
+    const { tablist, media, screenName } = info;
     const existing = tablist.querySelector('.xg-tab');
     if (existing) {
-      if (existing.dataset.screenName !== screenName) { existing.dataset.screenName = screenName; existing.querySelector('a').href = `/${screenName}#gallery`; }
+      if (existing.dataset.screenName !== screenName) { existing.dataset.screenName = screenName; existing.href = `/${screenName}#gallery`; }
       return;
     }
-    const template = tablist.querySelector('a[role="tab"][href$="/media"]').closest('[role="presentation"]') || tablist.lastElementChild;
+    const presentation = media.closest('[role="presentation"]');
+    const template = presentation && tablist.contains(presentation) ? presentation : media;
     const clone = template.cloneNode(true);
-    clone.classList.add('xg-tab');
-    clone.dataset.screenName = screenName;
-    const link = clone.querySelector('a[role="tab"]') || clone;
+    const link = template === media ? clone : clone.querySelector('a[role="tab"]');
+    link.classList.add('xg-tab');
+    link.dataset.screenName = screenName;
     link.href = `/${screenName}#gallery`;
     link.setAttribute('aria-selected', 'false');
-    link.removeAttribute('tabindex');
-    // Drop the "selected" underline if the template was the active tab (structure: a > div > div[dir] > [label, underline]).
-    const labelHost = link.querySelector('div[dir]') || link.firstElementChild?.firstElementChild;
-    if (labelHost) while (labelHost.children.length > 1) labelHost.lastElementChild.remove();
-    const spans = [...link.querySelectorAll('span')];
-    const label = spans.reverse().find((s) => s.children.length === 0) || link;
-    label.textContent = T.tab;
+    for (const attr of ['id', 'tabindex', 'aria-label', 'aria-controls', 'aria-current', 'data-active', 'data-composite-item-active']) link.removeAttribute(attr);
+
+    const underline = link.querySelector('[data-tab-underline]');
+    if (underline) underline.remove();
+    else {
+      // The old layout puts a separate underline after the label inside the same container.
+      const labelHost = link.querySelector('div[dir]') || link.firstElementChild?.firstElementChild;
+      if (labelHost) while (labelHost.children.length > 1) labelHost.lastElementChild.remove();
+    }
+    // The new layout uses a visible label and a hidden copy that sets its width.
+    const labels = [...link.querySelectorAll('span')].filter((span) => !span.children.length && span.textContent.trim());
+    for (const label of labels.length ? labels : [link]) label.textContent = T.tab;
     link.addEventListener('click', (e) => {
       if (e.button !== 0 || e.ctrlKey || e.metaKey || e.shiftKey) return;
       e.preventDefault(); e.stopPropagation();
-      gallery.open(clone.dataset.screenName);
+      gallery.open(link.dataset.screenName);
     });
     tablist.append(clone);
   }

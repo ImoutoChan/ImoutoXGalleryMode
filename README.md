@@ -29,7 +29,7 @@ Userscript for x.com that adds a **Gallery** tab to every profile: all photos an
 * About dialog with the version, update date and repository links
 * Automatic updates from this repository
 
-The **Gallery** tab sits next to **Media** on every profile:
+The **Gallery** tab appears in the profile tab bar on both the old and the new X web layouts:
 
 ![The Gallery tab on a profile](docs/gallery-tab.png)
 
